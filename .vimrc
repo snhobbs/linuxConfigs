@@ -12,6 +12,7 @@ filetype indent on      " load filetype-specific indent files
 set shiftwidth=4
 set tabstop=4       " number of visual spaces per TAB
 set softtabstop=4   " number of spaces in tab when editing
+set expandtab
 
 set wildmenu            " visual autocomplete for command menu
 set showmatch           " highlight matching [{()}]

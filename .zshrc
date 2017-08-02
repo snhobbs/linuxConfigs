@@ -113,7 +113,7 @@ welcome() {
     echo -ne "Today is "; date #date +"Today is %A %D, and it is now %R"
     echo -e ""
     echo -ne "Up time:";uptime | awk /'up/'
-    echo -en "Local IP Address :"; /sbin/ifconfig wlan1 | awk /'inet addr/ {print $2}' | sed -e s/addr:/' '/ 
+    echo -en "Local IP Address :"; /sbin/ifconfig wlan2 | awk /'inet addr/ {print $2}' | sed -e s/addr:/' '/ 
     echo "";
     } 
     welcome;
@@ -133,9 +133,11 @@ alias buckPasser="buck;python3 game.py"
 alias database="cd ~/Documents/eoi/dataBase"
 alias argus="cd ~/Documents/eoi/argus"
 alias heo="cd ~/Documents/heo"
+alias eoi="cd ~/Documents/eoi"
 alias c9="heo; cd cloud9"
 alias bear="~/Documents/projects/bear"
 alias vim="/usr/bin/vim"
 alias vi="vim"
 alias study="~/Documents/study"
 alias starwars="telnet towel.blinkenlights.nl"
+alias pft="cd ~/Documents/eoi/pftAsia"
