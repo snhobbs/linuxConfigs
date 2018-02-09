@@ -19,10 +19,6 @@ set showmatch           " highlight matching [{()}]
 set incsearch           " search as characters are entered
 set hlsearch            " highlight matches
 
-call plug#begin()
-Plug 'lervag/vimtex'
-Plug 'tpope/vim-sensible'
-call plug#end()
 " &runtimepath
 " autocmd VimEnter * nohlsearch ^d
 map 1 :nohlsearch

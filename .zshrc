@@ -2,7 +2,7 @@
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 
 # Path to your oh-my-zsh installation.
-  export ZSH=/home/simon/.dotfiles/oh-my-zsh
+  export ZSH=/home/simon/.oh-my-zsh
 
 # Set name of the theme to load. Optionally, if you set this to "random"
 # it'll load a random theme each time that oh-my-zsh is loaded.
@@ -108,36 +108,25 @@ welcome() {
     #------WELCOME MESSAGE---------------------
     clear
     figlet "Welcome, " $USER;
-    cat ~/snoopys.txt
+    cat ~/.snoopys.txt
     echo -e ""; cal ;
     echo -ne "Today is "; date #date +"Today is %A %D, and it is now %R"
     echo -e ""
     echo -ne "Up time:";uptime | awk /'up/'
-    echo -en "Local IP Address :"; /sbin/ifconfig wlan2 | awk /'inet addr/ {print $2}' | sed -e s/addr:/' '/ 
+    echo -en "Local IP Address :"; /sbin/ifconfig | awk /'inet addr/ {print $2}' | sed -e s/addr:/' '/ 
     echo "";
     } 
     welcome;
 
-heodb(){
-	source /usr/var/lib/DataBase/virenv/bin/activate
-	python3 -c "import heodb;heodb.run()"
-	deactivate
-}
-export heodb
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
-alias ql01="cd ~/Documents/eoi/HEO/qlo1/ql01Git/"
-alias buck="cd ~/Documents/projects/DetectiveBuckPasser"
-alias buckPasser="buck;python3 game.py"
-alias database="cd ~/Documents/eoi/dataBase"
-alias argus="cd ~/Documents/eoi/argus"
-alias heo="cd ~/Documents/heo"
-alias eoi="cd ~/Documents/eoi"
-alias c9="heo; cd cloud9"
-alias bear="~/Documents/projects/bear"
+alias fw="cd ~/argus/firmware/workspace/Integrator"
+alias in="cd ~/argus/integrator/integratorScripts"
+alias pl="cd ~/argus/integrator/plotter"
+alias an="cd ~/argus/integrator/analysis"
+alias prop="cd ~/proposals/argusIntegrator"
 alias vim="/usr/bin/vim"
 alias vi="vim"
-alias study="~/Documents/study"
-alias starwars="telnet towel.blinkenlights.nl"
-alias pft="cd ~/Documents/eoi/pftAsia"
+alias sv="source ~/venv/bin/activate"
+alias dat="cd ~/ArgusData"
