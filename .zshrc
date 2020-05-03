@@ -108,12 +108,12 @@ welcome() {
     #------WELCOME MESSAGE---------------------
     clear
     figlet "Welcome, " $USER;
-    cat ~/.snoopys.txt
+    cat ~/.splanes
     echo -e ""; cal ;
     echo -ne "Today is "; date #date +"Today is %A %D, and it is now %R"
     echo -e ""
     echo -ne "Up time:";uptime | awk /'up/'
-    echo -en "Local IP Address :"; /sbin/ifconfig | awk /'inet addr/ {print $2}' | sed -e s/addr:/' '/ 
+    echo -en "Local IP Address :"; /sbin/ifconfig | awk /'inet / {print $2}' | grep -v "127.0.0.1"
     echo "";
     } 
     welcome;
@@ -130,3 +130,8 @@ alias vim="/usr/bin/vim"
 alias vi="vim"
 alias sv="source ~/venv/bin/activate"
 alias dat="cd ~/ArgusData"
+alias eclipse="/home/simon/tools/eclipse/cpp-2019-06/eclipse/eclipse"
+alias eagle="/home/simon/tools/eagle-9.4.2/eagle"
+alias cmake="/home/simon/tools/cmake-3.15.2-Linux-x86_64/bin/cmake"
+alias clang="clang-9"
+export EDITOR=vim

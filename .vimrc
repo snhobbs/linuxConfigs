@@ -1,24 +1,22 @@
-syntax enable           " enable syntax processing
-"colorscheme badwolf
-"set termguicolors
-colorscheme elflord
+set runtimepath+=~/.vim_runtime
 
+source ~/.vim_runtime/vimrcs/basic.vim
+source ~/.vim_runtime/vimrcs/filetypes.vim
+source ~/.vim_runtime/vimrcs/plugins_config.vim
+source ~/.vim_runtime/vimrcs/extended.vim
+source ~/linuxConfigs/.vimrc
 
-set number          " show line numbers
-set showcmd             " show command in bottom bar
-" set cursorline          " highlight current line
+try
+source ~/.vim_runtime/my_configs.vim
+catch
+endtry
 
-filetype indent on      " load filetype-specific indent files
-set shiftwidth=4
-set tabstop=4       " number of visual spaces per TAB
-set softtabstop=4   " number of spaces in tab when editing
-set expandtab
-
-set wildmenu            " visual autocomplete for command menu
-set showmatch           " highlight matching [{()}]
-set incsearch           " search as characters are entered
-set hlsearch            " highlight matches
-
-" &runtimepath
-" autocmd VimEnter * nohlsearch ^d
-map 1 :nohlsearch
+set shiftwidth=2
+set tabstop=2
+"let g:clang_format#style_options = {
+"            \ "BasedOnStyle" : "Google",
+"            \ "SpacesBeforeTrailingComments" : 2,
+"            \ "Standard" : "C++17"}
+let g:ale_echo_msg_error_str = 'E'
+let g:ale_echo_msg_warning_str = 'W'
+let g:ale_echo_msg_format = '[%linter%] %s [%severity%]'
