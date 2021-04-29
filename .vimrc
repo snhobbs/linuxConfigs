@@ -5,6 +5,7 @@ source ~/.vim_runtime/vimrcs/filetypes.vim
 source ~/.vim_runtime/vimrcs/plugins_config.vim
 source ~/.vim_runtime/vimrcs/extended.vim
 source ~/linuxConfigs/.vimrc
+source ~/linuxConfigs/vim_highlighting
 
 try
 source ~/.vim_runtime/my_configs.vim
