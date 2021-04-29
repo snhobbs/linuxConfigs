@@ -121,17 +121,20 @@ welcome() {
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
-alias fw="cd ~/argus/firmware/workspace/Integrator"
-alias in="cd ~/argus/integrator/integratorScripts"
-alias pl="cd ~/argus/integrator/plotter"
-alias an="cd ~/argus/integrator/analysis"
-alias prop="cd ~/proposals/argusIntegrator"
-alias vim="/usr/bin/vim"
-alias vi="vim"
-alias sv="source ~/venv/bin/activate"
-alias dat="cd ~/ArgusData"
 alias eclipse="/home/simon/tools/eclipse/cpp-2019-06/eclipse/eclipse"
 alias eagle="/home/simon/tools/eagle-9.4.2/eagle"
-alias cmake="/home/simon/tools/cmake-3.15.2-Linux-x86_64/bin/cmake"
+alias cmake="/home/simon/tools/cmake/bin/cmake"
 alias clang="clang-9"
 export EDITOR=vim
+
+export NVM_DIR="/home/simon/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
+export LANG=en_US.utf8
+export LC_ALL=C.UTF-8
+#alias anaconda=eval "$(/usr/local/anaconda3/bin/conda shell.zsh hook)"
+export PATH="$PATH:/usr/include"
+anaconda() {
+  eval "$(/usr/local/anaconda3/bin/conda shell.zsh hook)";
+}
+
+alias marker="flatpak run com.github.fabiocolacio.marker"
