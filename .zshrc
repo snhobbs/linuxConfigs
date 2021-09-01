@@ -2,7 +2,7 @@
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 
 # Path to your oh-my-zsh installation.
-  export ZSH=/home/simon/.oh-my-zsh
+  export ZSH=$HOME/.oh-my-zsh
 
 # Set name of the theme to load. Optionally, if you set this to "random"
 # it'll load a random theme each time that oh-my-zsh is loaded.
@@ -121,13 +121,13 @@ welcome() {
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
-alias eclipse="/home/simon/tools/eclipse/cpp-2019-06/eclipse/eclipse"
-alias eagle="/home/simon/tools/eagle-9.4.2/eagle"
-alias cmake="/home/simon/tools/cmake/bin/cmake"
+alias eclipse="$HOME/tools/eclipse/cpp-2019-06/eclipse/eclipse"
+alias eagle="$HOME/tools/eagle-9.4.2/eagle"
+alias cmake="$HOME/tools/cmake/bin/cmake"
 alias clang="clang-9"
 export EDITOR=vim
 
-export NVM_DIR="/home/simon/.nvm"
+export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
 export LANG=en_US.utf8
 export LC_ALL=C.UTF-8
