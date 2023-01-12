@@ -23,6 +23,8 @@ set hlsearch            " highlight matches
 " &runtimepath
 " autocmd VimEnter * nohlsearch ^d
 map <C-a> :nohlsearch
+command W w " Use capitols and lowercase for read/write
+command Q q "
 
 "let g:clang_format#style_options = {
 "            \ "BasedOnStyle" : "Google",

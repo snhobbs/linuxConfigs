@@ -121,9 +121,9 @@ welcome() {
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
-alias eclipse="/home/simon/tools/eclipse/cpp-2019-06/eclipse/eclipse"
-alias eagle="/home/simon/tools/eagle-9.4.2/eagle"
-alias cmake="/home/simon/tools/cmake/bin/cmake"
+#alias eclipse="/home/simon/tools/eclipse/cpp-2019-06/eclipse/eclipse"
+#alias eagle="/home/simon/tools/eagle-9.4.2/eagle"
+#alias cmake="/home/simon/tools/cmake/bin/cmake"
 alias clang="clang-9"
 export EDITOR=vim
 
@@ -134,7 +134,22 @@ export LC_ALL=C.UTF-8
 #alias anaconda=eval "$(/usr/local/anaconda3/bin/conda shell.zsh hook)"
 export PATH="$PATH:/usr/include"
 anaconda() {
-  eval "$(/usr/local/anaconda3/bin/conda shell.zsh hook)";
+  eval "$(/home/simon/anaconda3/bin/conda shell.zsh hook)";
 }
 
 alias marker="flatpak run com.github.fabiocolacio.marker"
+
+export PATH=$PATH:/home/simon/.local/bin
+export VIVADO_ROOTDIR=${HOME}/tools/Xilinx/Vivado/2021.1/bin/vivado
+
+
+export PATH=$PATH:/home/simon/tools/InteractiveHtmlBom/InteractiveHtmlBom:/home/simon/.gem/ruby/2.7.0/bin/
+export PATH=$PATH:/home/simon/ToolChains/gcc-arm-none-eabi-10-2020-q4-major/bin
+
+alias gits="git status"
+alias gitd="git diff"
+alias ultimatemaker="~/tools/Ultimaker-Cura-5.2.1-linux.AppImage"
+alias cura="~/bin/Ultimaker-Cura-5.2.1-linux.AppImage"
+alias blender="/usr/bin/flatpak run --branch=stable --arch=x86_64 --command=blender --file-forwarding org.blender.Blender"
+
+[[ -e $HOME/.dircolors ]] && eval "`dircolors --sh $HOME/.dircolors`"
