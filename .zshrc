@@ -152,4 +152,9 @@ alias ultimatemaker="~/tools/Ultimaker-Cura-5.2.1-linux.AppImage"
 alias cura="~/bin/Ultimaker-Cura-5.2.1-linux.AppImage"
 alias blender="/usr/bin/flatpak run --branch=stable --arch=x86_64 --command=blender --file-forwarding org.blender.Blender"
 
+FREECAD_PYTHONPATH=/home/simon/.FreeCAD/squashfs-root/usr/lib:/home/simon/.freecad_venv/lib/python3.8/site-packages
+KICAD_PYTHONPATH=/usr/lib/kicad/lib/python3/dist-packages:/usr/lib/kicad/lib/x86_64-linux-gnu
+
 [[ -e $HOME/.dircolors ]] && eval "`dircolors --sh $HOME/.dircolors`"
+
+export QSYS_ROOTDIR="/home/simon/intelFPGA_lite/22.1std/quartus/sopc_builder/bin"
