@@ -1,0 +1,29 @@
+#! /bin/bash
+# Install Brother MFC6490CW drivers for CUPS
+sudo rpm --nosignature -ivh /home/user/shrinkwr/brother/mfc6490cwcupswrapper*rpm /home/user/shrinkwr/brother/mfc6490cwlpr*rpm
+#
+# create printers
+# options are listed in the ppd file
+# brother is 10.231.231.247 at the lab and 10.23.23.130 at home
+
+sudo lpadmin -x MFC6490CWletter > /dev/null 2>&1
+sudo lpadmin -p MFC6490CWletter -m brmfc6490cw.ppd -E -L "PH office"  -v socket://brother:9100 -o PageSize=letter -o BRInputSlot=Tray1 -u deny:none
+#
+sudo lpadmin -x MFC6490CWtabloid > /dev/null 2>&1
+sudo lpadmin -p MFC6490CWtabloid -m brmfc6490cw.ppd -E -L "PH office"  -v socket://brother:9100 -o PageSize=tabloid -o BRInputSlot=Tray2 -u deny:none
+#
+sudo lpadmin -x MFC6490CWhomeLet > /dev/null 2>&1
+# options are listed in the ppd file
+sudo lpadmin -p MFC6490CWhomeLet -m  brmfc6490cw.ppd -E -L "home"  -v socket://10.23.23.130:9100 -o PageSize=letter -o BRInputSlot=Tray2 -u deny:none
+#
+sudo lpadmin -x MFC6490CWhomeTab > /dev/null 2>&1
+sudo lpadmin -p MFC6490CWhomeTab -m  brmfc6490cw.ppd -E -L "home"  -v socket://10.23.23.130:9100 -o PageSize=tabloid -o BRInputSlot=Tray1 -u deny:none
+
+sudo lpadmin -x LJ2300-Ethernet > /dev/null 2>&1
+# options are listed in the ppd file
+sudo lpadmin -p LJ2300-Ethernet -m  lsb/usr/HP/hp-laserjet_2300_series-ps.ppd.gz -E -L "office"  -v socket://laserjet:9100 -o PageSize=letter -o HPOption_Duplexer=True -o InstalledMemory=48MB -o HPOption_Tray3=Tray3_500 -u deny:none
+#
+
+
+# Set default
+sudo lpadmin -d LJ2300-Ethernet

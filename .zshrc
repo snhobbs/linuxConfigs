@@ -52,6 +52,7 @@ ZSH_THEME="robbyrussell"
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(git)
+#plugins+=(zsh-vi-mode)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -106,7 +107,7 @@ nc='\e[0m'
 welcome() {
     #------------------------------------------
     #------WELCOME MESSAGE---------------------
-    clear
+    #clear
     figlet "Welcome, " $USER;
     cat ~/.splanes
     echo -e ""; cal ;
@@ -121,9 +122,9 @@ welcome() {
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
-#alias eclipse="/home/simon/tools/eclipse/cpp-2019-06/eclipse/eclipse"
-#alias eagle="/home/simon/tools/eagle-9.4.2/eagle"
-#alias cmake="/home/simon/tools/cmake/bin/cmake"
+#alias eclipse="${HOME}/tools/eclipse/cpp-2019-06/eclipse/eclipse"
+#alias eagle="${HOME}/tools/eagle-9.4.2/eagle"
+#alias cmake="${HOME}/tools/cmake/bin/cmake"
 alias clang="clang-9"
 export EDITOR=vim
 
@@ -134,27 +135,36 @@ export LC_ALL=C.UTF-8
 #alias anaconda=eval "$(/usr/local/anaconda3/bin/conda shell.zsh hook)"
 export PATH="$PATH:/usr/include"
 anaconda() {
-  eval "$(/home/simon/anaconda3/bin/conda shell.zsh hook)";
+  eval "$(${HOME}/anaconda3/bin/conda shell.zsh hook)";
 }
 
 alias marker="flatpak run com.github.fabiocolacio.marker"
 
-export PATH=$PATH:/home/simon/.local/bin
+# Make the local repo the highest priority
+export PATH=${HOME}/.local/bin:$PATH
 export VIVADO_ROOTDIR=${HOME}/tools/Xilinx/Vivado/2021.1/bin/vivado
 
 
-export PATH=$PATH:/home/simon/tools/InteractiveHtmlBom/InteractiveHtmlBom:/home/simon/.gem/ruby/2.7.0/bin/
-export PATH=$PATH:/home/simon/ToolChains/gcc-arm-none-eabi-10-2020-q4-major/bin
+#export PATH=$PATH:${HOME}/tools/InteractiveHtmlBom/InteractiveHtmlBom:
+export PATH=$PATH:${HOME}/.gem/ruby/2.7.0/bin/
+export PATH=$PATH:${HOME}/ToolChains/gcc-arm-none-eabi-10-2020-q4-major/bin
+export PATH=$PATH:${HOME}/.cargo/bin:$HOME/local/go/bin
+export PATH="$PATH:/opt/nvim-linux64/bin"
 
 alias gits="git status"
 alias gitd="git diff"
 alias ultimatemaker="~/tools/Ultimaker-Cura-5.2.1-linux.AppImage"
-alias cura="~/bin/Ultimaker-Cura-5.2.1-linux.AppImage"
-alias blender="/usr/bin/flatpak run --branch=stable --arch=x86_64 --command=blender --file-forwarding org.blender.Blender"
+alias cura="~/bin/UltiMaker-Cura-5.4.0-linux-modern.AppImage"
+alias act="~/tools/act/bin/act"
+#alias blender="/usr/bin/flatpak run --branch=stable --arch=x86_64 --command=blender --file-forwarding org.blender.Blender"
 
-FREECAD_PYTHONPATH=/home/simon/.FreeCAD/squashfs-root/usr/lib:/home/simon/.freecad_venv/lib/python3.8/site-packages
+FREECAD_PYTHONPATH=${HOME}/.FreeCAD/squashfs-root/usr/lib:${HOME}/.freecad_venv/lib/python3.8/site-packages
 KICAD_PYTHONPATH=/usr/lib/kicad/lib/python3/dist-packages:/usr/lib/kicad/lib/x86_64-linux-gnu
 
 [[ -e $HOME/.dircolors ]] && eval "`dircolors --sh $HOME/.dircolors`"
 
-export QSYS_ROOTDIR="/home/simon/intelFPGA_lite/22.1std/quartus/sopc_builder/bin"
+export QSYS_ROOTDIR="${HOME}/intelFPGA_lite/22.1std/quartus/sopc_builder/bin"
+export OPENSCADPATH=${OPENSCADPATH}:${HOME}/.local/share/OpenSCAD
+PCBNEW_DIR=/var/lib/flatpak/app/org.kicad.KiCad/x86_64/stable/2bf52c23c763b843e66b1ddd341ef62cd8c1d08dec056764a5a19a8c39c5e774/files/lib/python3.11/site-packages
+#export PYTHONPATH=${PYTHONPATH}:${PCBNEW_DIR}
+export PYTHONPATH=${PYTHONPATH}:${HOME}/tools/kicad-source-mirror/build/pcbnew/

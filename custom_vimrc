@@ -23,7 +23,7 @@ set hlsearch            " highlight matches
 " &runtimepath
 " autocmd VimEnter * nohlsearch ^d
 map <C-a> :nohlsearch
-command W w " Use capitols and lowercase for read/write
+command! W w " Use capitols and lowercase for read/write
 command Q q "
 
 "let g:clang_format#style_options = {
@@ -42,3 +42,13 @@ let g:syntastic_mode_map = {
   \ "active_filetypes": ["c", "c++", "octave", "vim"],
   \ "passive_filetypes": [] }
 
+" Map auto complete of (, ", ', [
+let g:pathogen_disabled = []
+call add(g:pathogen_disabled, 'auto-pairs')
+
+
+" copy to buffer
+vmap <C-c> :w! ~/.vimbuffer<CR>
+nmap <C-c> :.w! ~/.vimbuffer<CR>
+" paste from buffer
+map <C-p> :r ~/.vimbuffer<CR>

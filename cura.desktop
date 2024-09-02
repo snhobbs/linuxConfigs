@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Name=cura
+Comment=Cura 3D Printing
+Exec=~/bin/Ultimaker-Cura-5.2.1-linux.AppImage
+#Icon=
+Terminal=false
+StartupWMClass=cura
+Type=Application
+Categories=Other

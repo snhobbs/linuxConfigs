@@ -1,0 +1,11 @@
+# Copy to desktop and /usr/share/applications
+[Desktop Entry]
+Version=1.0
+Name=marker
+Comment=Markdown Editor
+Exec=flatpak run com.github.fabiocolacio.marker
+#Icon=
+Terminal=false
+StartupWMClass=marker
+Type=Application
+Categories=Office
