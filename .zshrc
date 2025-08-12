@@ -1,3 +1,20 @@
+export PATH=$HOME/.local/bin
+export PATH=$PATH:$HOME/bin
+export PATH=$PATH:/usr/local/sbin
+export PATH=$PATH:/usr/local/bin
+export PATH=$PATH:/usr/sbin
+export PATH=$PATH:/usr/bin
+export PATH=$PATH:/sbin
+export PATH=$PATH:/bin
+export PATH=$PATH:/usr/games
+export PATH=$PATH:/usr/local/games
+export PATH=$PATH:/snap/bin
+export PATH=$PATH:/usr/include
+export PATH=$PATH:$HOME/.gem/ruby/2.7.0/bin
+export PATH=$PATH:$HOME/.cargo/bin
+export PATH=$PATH:$HOME/local/go/bin
+export PATH=$PATH:/opt/nvim-linux64/bin
+
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 
@@ -126,45 +143,57 @@ welcome() {
 #alias eagle="${HOME}/tools/eagle-9.4.2/eagle"
 #alias cmake="${HOME}/tools/cmake/bin/cmake"
 alias clang="clang-9"
-export EDITOR=vim
+export EDITOR=nvim
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
 export LANG=en_US.utf8
 export LC_ALL=C.UTF-8
 #alias anaconda=eval "$(/usr/local/anaconda3/bin/conda shell.zsh hook)"
-export PATH="$PATH:/usr/include"
 anaconda() {
   eval "$(${HOME}/anaconda3/bin/conda shell.zsh hook)";
 }
 
-alias marker="flatpak run com.github.fabiocolacio.marker"
-
-# Make the local repo the highest priority
-export PATH=${HOME}/.local/bin:$PATH
-export VIVADO_ROOTDIR=${HOME}/tools/Xilinx/Vivado/2021.1/bin/vivado
-
-
-#export PATH=$PATH:${HOME}/tools/InteractiveHtmlBom/InteractiveHtmlBom:
-export PATH=$PATH:${HOME}/.gem/ruby/2.7.0/bin/
-export PATH=$PATH:${HOME}/ToolChains/gcc-arm-none-eabi-10-2020-q4-major/bin
-export PATH=$PATH:${HOME}/.cargo/bin:$HOME/local/go/bin
-export PATH="$PATH:/opt/nvim-linux64/bin"
 
 alias gits="git status"
 alias gitd="git diff"
-alias ultimatemaker="~/tools/Ultimaker-Cura-5.2.1-linux.AppImage"
-alias cura="~/bin/UltiMaker-Cura-5.4.0-linux-modern.AppImage"
 alias act="~/tools/act/bin/act"
+#alias freecad="flatpak run --arch=x86_64 --file-forwarding org.freecad.FreeCAD"
 #alias blender="/usr/bin/flatpak run --branch=stable --arch=x86_64 --command=blender --file-forwarding org.blender.Blender"
 
-FREECAD_PYTHONPATH=${HOME}/.FreeCAD/squashfs-root/usr/lib:${HOME}/.freecad_venv/lib/python3.8/site-packages
+FREECAD_PYTHONPATH=${HOME}/.FreeCAD/squashfs-root/usr/lib/python3.11/site-packages
 KICAD_PYTHONPATH=/usr/lib/kicad/lib/python3/dist-packages:/usr/lib/kicad/lib/x86_64-linux-gnu
 
 [[ -e $HOME/.dircolors ]] && eval "`dircolors --sh $HOME/.dircolors`"
 
-export QSYS_ROOTDIR="${HOME}/intelFPGA_lite/22.1std/quartus/sopc_builder/bin"
 export OPENSCADPATH=${OPENSCADPATH}:${HOME}/.local/share/OpenSCAD
-PCBNEW_DIR=/var/lib/flatpak/app/org.kicad.KiCad/x86_64/stable/2bf52c23c763b843e66b1ddd341ef62cd8c1d08dec056764a5a19a8c39c5e774/files/lib/python3.11/site-packages
+#export PYTHONPATH=${PYTHONPATH}:${HOME}/tools/kicad-source-mirror/build/pcbnew/
+#PCBNEW_DIR=/var/lib/flatpak/app/org.kicad.KiCad/x86_64/stable/2bf52c23c763b843e66b1ddd341ef62cd8c1d08dec056764a5a19a8c39c5e774/files/lib/python3.11/site-packages
+PCBNEW_DIR=/usr/lib/python3/dist-packages
 #export PYTHONPATH=${PYTHONPATH}:${PCBNEW_DIR}
-export PYTHONPATH=${PYTHONPATH}:${HOME}/tools/kicad-source-mirror/build/pcbnew/
+export SLOEBER_HOME=${HOME}/.local/share/sloeber 
+
+# >>> mamba initialize >>>
+# !! Contents within this block are managed by 'mamba init' !!
+export MAMBA_EXE='${HOME}/anaconda3/envs/venv3.12/bin/micromamba';
+export MAMBA_ROOT_PREFIX='${HOME}/micromamba';
+__mamba_setup="$("$MAMBA_EXE" shell hook --shell zsh --root-prefix "$MAMBA_ROOT_PREFIX" 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__mamba_setup"
+else
+    alias micromamba="$MAMBA_EXE"  # Fallback on help from mamba activate
+fi
+unset __mamba_setup
+# <<< mamba initialize <<<
+alias gitsl="git status ./"
+alias mcuxpresso="env SWT_GTK3=0 /usr/local/mcuxpressoide-24.12.148/ide/mcuxpressoide"
+#export LD_LIBRARY_PATH=${HOME}/.local/lib/
+#export PATH_TO_FREECAD_LIBDIR=${HOME}/.FreeCAD/squashfs-root/usr/lib/
+alias pyserial-miniterm="python -m serial.tools.miniterm"
+
+export PATH_TO_FREECAD_LIBDIR=${HOME}/.FreeCAD/squashfs-root/usr/lib/
+setup_freecad() {
+  anaconda && conda activate venv3.11
+  export PYTHONPATH=${FREECAD_PYTHONPATH}:${PYTHONPATH}
+}
+alias vim=nvim
