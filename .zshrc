@@ -10,10 +10,12 @@ export PATH=$PATH:/usr/games
 export PATH=$PATH:/usr/local/games
 export PATH=$PATH:/snap/bin
 export PATH=$PATH:/usr/include
-export PATH=$PATH:$HOME/.gem/ruby/2.7.0/bin
+export PATH=$PATH:$HOME/.gem/ruby/3.2.0/bin
 export PATH=$PATH:$HOME/.cargo/bin
 export PATH=$PATH:$HOME/local/go/bin
 export PATH=$PATH:/opt/nvim-linux64/bin
+export PATH=$PATH:$HOME/go/bin
+# export PATH=$PATH:/home/simon/ToolChains/arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi/bin/
 
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
@@ -121,20 +123,59 @@ nc='\e[0m'
 
 #------------------------------------------////
 ## FUNCTIONS
+
+# Every IPv4 address on this machine, one per interface (skips loopback).
+_local_ips() {
+  if (( $+commands[ip] )); then                       # Linux
+    ip -4 -o addr show 2>/dev/null |
+      awk '$2 != "lo" {sub("/.*", "", $4); printf "  %-16s %s\n", $2, $4}'
+  else                                                # macOS / BSD
+    ifconfig 2>/dev/null |
+      awk '/^[^ \t]/ {iface = $1; sub(":$", "", iface)}
+           /inet / && $2 != "127.0.0.1" {printf "  %-16s %s\n", iface, $2}'
+  fi
+}
+
+# Running Docker containers and their IPs (silent if Docker isn't running).
+_docker_ips() {
+  (( $+commands[docker] )) || return
+  local ids=$(docker ps -q 2>/dev/null)
+  [[ -n $ids ]] || return
+  print "Containers:"
+  docker inspect -f '{{.Name}}{{range .NetworkSettings.Networks}} {{.IPAddress}}{{end}}' ${(f)ids} 2>/dev/null |
+    awk '{n = $1; sub("^/", "", n); $1 = ""; printf "  %-16s%s\n", n, $0}'
+}
+
+
+SPLASH_ART=~/linuxConfigs/.snoopy.txt          # your art file
+SPLASH_ART_COLORS=(1-6:255 20-:9)     # rows 1–6 white, row 20 onward red
+SPLASH_PAD=3                          # gap between art and planes
+SPLASH_FILE=~/linuxConfigs/splash.zsh
+
+
 welcome() {
-    #------------------------------------------
-    #------WELCOME MESSAGE---------------------
-    #clear
-    figlet "Welcome, " $USER;
-    cat ~/.splanes
-    echo -e ""; cal ;
-    echo -ne "Today is "; date #date +"Today is %A %D, and it is now %R"
-    echo -e ""
-    echo -ne "Up time:";uptime | awk /'up/'
-    echo -en "Local IP Address :"; /sbin/ifconfig | awk /'inet / {print $2}' | grep -v "127.0.0.1"
-    echo "";
-    } 
-    welcome;
+  source $SPLASH_FILE
+  print
+  figlet "Welcome, $USER"
+
+  local d=$(( 10#$(date +%d) ))
+  local -a cal=("${(@f)$(cal | awk -v d=$d '
+    { line = " " substr(sprintf("%-22s", $0), 1, 22) " " }
+    NR > 2 { sub(" " d " ", " \033[1;97;41m" d "\033[0m ", line) }
+    { print substr(line, 2, length(line) - 2) }')}")
+  local -a info=(
+    "Today:  $(date '+%A %d %B, %H:%M')"
+    "Up:     $(uptime -p | sed 's/^up //')"
+    ""
+    "IP addresses:"
+    "${(@f)$(_local_ips)}"
+  )
+  local i
+  for i in {1..$(( $#cal > $#info ? $#cal : $#info ))}; do
+    print -r -- "  ${cal[i]:-${(l:22:)}}   ${info[i]}"
+  done
+}
+welcome
 
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
@@ -142,18 +183,14 @@ welcome() {
 #alias eclipse="${HOME}/tools/eclipse/cpp-2019-06/eclipse/eclipse"
 #alias eagle="${HOME}/tools/eagle-9.4.2/eagle"
 #alias cmake="${HOME}/tools/cmake/bin/cmake"
-alias clang="clang-9"
 export EDITOR=nvim
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
+
+
 export LANG=en_US.utf8
 export LC_ALL=C.UTF-8
-#alias anaconda=eval "$(/usr/local/anaconda3/bin/conda shell.zsh hook)"
-anaconda() {
-  eval "$(${HOME}/anaconda3/bin/conda shell.zsh hook)";
-}
-
 
 alias gits="git status"
 alias gitd="git diff"
@@ -166,25 +203,12 @@ KICAD_PYTHONPATH=/usr/lib/kicad/lib/python3/dist-packages:/usr/lib/kicad/lib/x86
 
 [[ -e $HOME/.dircolors ]] && eval "`dircolors --sh $HOME/.dircolors`"
 
-export OPENSCADPATH=${OPENSCADPATH}:${HOME}/.local/share/OpenSCAD
+#export OPENSCADPATH=${OPENSCADPATH}:${HOME}/.local/share/OpenSCAD
 #export PYTHONPATH=${PYTHONPATH}:${HOME}/tools/kicad-source-mirror/build/pcbnew/
 #PCBNEW_DIR=/var/lib/flatpak/app/org.kicad.KiCad/x86_64/stable/2bf52c23c763b843e66b1ddd341ef62cd8c1d08dec056764a5a19a8c39c5e774/files/lib/python3.11/site-packages
 PCBNEW_DIR=/usr/lib/python3/dist-packages
 #export PYTHONPATH=${PYTHONPATH}:${PCBNEW_DIR}
-export SLOEBER_HOME=${HOME}/.local/share/sloeber 
 
-# >>> mamba initialize >>>
-# !! Contents within this block are managed by 'mamba init' !!
-export MAMBA_EXE='${HOME}/anaconda3/envs/venv3.12/bin/micromamba';
-export MAMBA_ROOT_PREFIX='${HOME}/micromamba';
-__mamba_setup="$("$MAMBA_EXE" shell hook --shell zsh --root-prefix "$MAMBA_ROOT_PREFIX" 2> /dev/null)"
-if [ $? -eq 0 ]; then
-    eval "$__mamba_setup"
-else
-    alias micromamba="$MAMBA_EXE"  # Fallback on help from mamba activate
-fi
-unset __mamba_setup
-# <<< mamba initialize <<<
 alias gitsl="git status ./"
 alias mcuxpresso="env SWT_GTK3=0 /usr/local/mcuxpressoide-24.12.148/ide/mcuxpressoide"
 #export LD_LIBRARY_PATH=${HOME}/.local/lib/
@@ -193,7 +217,27 @@ alias pyserial-miniterm="python -m serial.tools.miniterm"
 
 export PATH_TO_FREECAD_LIBDIR=${HOME}/.FreeCAD/squashfs-root/usr/lib/
 setup_freecad() {
-  anaconda && conda activate venv3.11
+  source $HOME/enc/freecad
   export PYTHONPATH=${FREECAD_PYTHONPATH}:${PYTHONPATH}
 }
 alias vim=nvim
+
+
+export ZEPHYR_SDK_INSTALL_DIR=~/.zephyr_ide/toolchains/zephyr-sdk-0.17.3
+
+fpath+=~/.zfunc; autoload -Uz compinit; compinit
+
+zstyle ':completion:*' menu select
+
+ta() {
+    if [ -z "$TMUX" ]; then
+        tmux attach || exec tmux new-session
+        exit
+    fi
+}
+
+#[ -z "$TMUX"  ] && { tmux attach || exec tmux new-session && exit;}
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+source /home/simon/envs/main/bin/activate
+
