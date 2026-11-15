@@ -124,59 +124,6 @@ nc='\e[0m'
 #------------------------------------------////
 ## FUNCTIONS
 
-# Every IPv4 address on this machine, one per interface (skips loopback).
-_local_ips() {
-  if (( $+commands[ip] )); then                       # Linux
-    ip -4 -o addr show 2>/dev/null |
-      awk '$2 != "lo" {sub("/.*", "", $4); printf "  %-16s %s\n", $2, $4}'
-  else                                                # macOS / BSD
-    ifconfig 2>/dev/null |
-      awk '/^[^ \t]/ {iface = $1; sub(":$", "", iface)}
-           /inet / && $2 != "127.0.0.1" {printf "  %-16s %s\n", iface, $2}'
-  fi
-}
-
-# Running Docker containers and their IPs (silent if Docker isn't running).
-_docker_ips() {
-  (( $+commands[docker] )) || return
-  local ids=$(docker ps -q 2>/dev/null)
-  [[ -n $ids ]] || return
-  print "Containers:"
-  docker inspect -f '{{.Name}}{{range .NetworkSettings.Networks}} {{.IPAddress}}{{end}}' ${(f)ids} 2>/dev/null |
-    awk '{n = $1; sub("^/", "", n); $1 = ""; printf "  %-16s%s\n", n, $0}'
-}
-
-
-SPLASH_ART=~/linuxConfigs/.snoopy.txt          # your art file
-SPLASH_ART_COLORS=(1-6:255 20-:9)     # rows 1–6 white, row 20 onward red
-SPLASH_PAD=3                          # gap between art and planes
-SPLASH_FILE=~/linuxConfigs/splash.zsh
-
-
-welcome() {
-  source $SPLASH_FILE
-  print
-  figlet "Welcome, $USER"
-
-  local d=$(( 10#$(date +%d) ))
-  local -a cal=("${(@f)$(cal | awk -v d=$d '
-    { line = " " substr(sprintf("%-22s", $0), 1, 22) " " }
-    NR > 2 { sub(" " d " ", " \033[1;97;41m" d "\033[0m ", line) }
-    { print substr(line, 2, length(line) - 2) }')}")
-  local -a info=(
-    "Today:  $(date '+%A %d %B, %H:%M')"
-    "Up:     $(uptime -p | sed 's/^up //')"
-    ""
-    "IP addresses:"
-    "${(@f)$(_local_ips)}"
-  )
-  local i
-  for i in {1..$(( $#cal > $#info ? $#cal : $#info ))}; do
-    print -r -- "  ${cal[i]:-${(l:22:)}}   ${info[i]}"
-  done
-}
-welcome
-
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
@@ -240,4 +187,107 @@ ta() {
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
 source /home/simon/envs/main/bin/activate
+export KICAD_APPIMAGE=/home/simon/claude-workspace/kicad-10.0.6-x86_64-lite.AppImage
 
+
+
+
+# ---- KiCad AppImage / pcbnew helpers ----
+KICAD_APPIMAGE="${KICAD_APPIMAGE:-$HOME/claude-workspace/kicad-10.0.6-x86_64-lite.AppImage}"
+# 1.6 GB when extracted. RAM/tmp re-extracts after reboot; use a disk path
+# if you want it persistent.
+KICAD_APPDIR="${KICAD_APPDIR:-${RAMDIR:-/tmp}/kicad-appimage/AppDir}"
+_kicad_ensure() {
+	if [[ ! -x "$KICAD_APPIMAGE" ]]; then
+		printf 'kicad: AppImage not found: %s\n' "$KICAD_APPIMAGE" >&2
+		return 1
+	fi
+	if [[ ! -x "$KICAD_APPDIR/bin/python3.11" || "$KICAD_APPIMAGE" -nt "$KICAD_APPDIR/.extracted" ]]; then
+		local root
+		root=$(dirname "$KICAD_APPDIR")
+		printf 'kicad: extracting %s -> %s (1.6 GB, once)\n' "$KICAD_APPIMAGE" "$root" >&2
+		mkdir -p "$root" || return 1
+		rm -rf "$root/AppDir" "$root/squashfs-root"
+		( cd "$root" && "$KICAD_APPIMAGE" --appimage-extract >/dev/null ) || return 1
+		: > "$KICAD_APPDIR/.extracted"
+	fi
+}
+
+# Create a uv venv backed by the AppImage's Python
+kicad-uv-setup() {
+	_kicad_ensure || return
+	local venv="${1:-.venv}"
+	if [[ -e "$venv" ]]; then
+		printf 'kicad: %s already exists; remove it or choose another path\n' "$venv" >&2
+		return 1
+	fi
+	uv venv --python "$KICAD_APPDIR/bin/python3.11" "$venv" || return
+	printf 'kicad: created %s. Add packages with: uv add <pkg>\n' "$venv"
+}
+
+
+# Run a script / module / REPL with pcbnew. Uses ./.venv if it is a KiCad venv.
+kicad-python() {
+	_kicad_ensure || return
+	local py="$KICAD_APPDIR/bin/python3.11"
+	if [[ -x .venv/bin/python ]] && [[ "$(readlink -f .venv/bin/python)" == "$(readlink -f "$py")" ]]; then
+		py=".venv/bin/python"
+	fi
+	"$py" "$@"
+}
+
+
+
+# Every IPv4 address on this machine, one per interface (skips loopback).
+_local_ips() {
+  if (( $+commands[ip] )); then   # Linux
+    ip -4 -o addr show 2>/dev/null |
+      awk '$2 != "lo" {sub("/.*", "", $4); printf "  %-16s %s\n", $2, $4}'
+  else        # macOS / BSD
+    ifconfig 2>/dev/null |
+      awk '/^[^ \t]/ {iface = $1; sub(":$", "", iface)}
+ /inet / && $2 != "127.0.0.1" {printf "  %-16s %s\n", iface, $2}'
+  fi
+}
+
+# Running Docker containers and their IPs (silent if Docker isn't running).
+_docker_ips() {
+  (( $+commands[docker] )) || return
+  local ids=$(docker ps -q 2>/dev/null)
+  [[ -n $ids ]] || return
+  print "Containers:"
+  docker inspect -f '{{.Name}}{{range .NetworkSettings.Networks}} {{.IPAddress}}{{end}}' ${(f)ids} 2>/dev/null |
+    awk '{n = $1; sub("^/", "", n); $1 = ""; printf "  %-16s%s\n", n, $0}'
+}
+
+
+SPLASH_ART=~/linuxConfigs/splash/snoopy.txt
+SPLASH_ART_COLORS=(1-6:255 20-:9)     # rows 1–6 white, row 20 onward red
+SPLASH_PAD=3      # gap between art and planes
+SPLASH_SCARF=12-13   # Snoopy's scarf flutters
+SPLASH_FILE=~/linuxConfigs/splash/splash.zsh
+
+
+welcome() {
+  source $SPLASH_FILE
+  print
+  figlet "Welcome, $USER"
+
+  local d=$(( 10#$(date +%d) ))
+  local -a cal=("${(@f)$(cal | awk -v d=$d '
+    { line = " " substr(sprintf("%-22s", $0), 1, 22) " " }
+    NR > 2 { sub(" " d " ", " \033[1;97;41m" d "\033[0m ", line) }
+    { print substr(line, 2, length(line) - 2) }')}")
+  local -a info=(
+    "Today:  $(date '+%A %d %B, %H:%M')"
+    "Up:     $(uptime -p | sed 's/^up //')"
+    ""
+    "IP addresses:"
+    "${(@f)$(_local_ips)}"
+  )
+  local i
+  for i in {1..$(( $#cal > $#info ? $#cal : $#info ))}; do
+    print -r -- "  ${cal[i]:-${(l:22:)}}   ${info[i]}"
+  done
+}
+welcome

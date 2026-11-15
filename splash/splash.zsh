@@ -10,6 +10,8 @@
 #                                   open-ended ranges allowed ("20-" = row 20 to end).
 #                                   ANSI colour codes inside the file also work.
 #   SPLASH_PAD=3                    gap between the art and the planes
+#   SPLASH_SCARF=12-13              art rows whose first word is a scarf tail:
+#                                   it flutters in the breeze (unset = static)
 #   SPLASH_ANIMATE=0                static screen, no animation
 # Any key skips the animation.
 
@@ -78,6 +80,21 @@
     fi
   fi
 
+  # ---- Optional fluttering scarf ------------------------------------------
+  # SPLASH_SCARF=12-13 (or "12 13"): rows whose first word is the scarf tail.
+  local -a scarfrows
+  local spec lo hi nr
+  for spec in ${=SPLASH_SCARF}; do
+    if [[ $spec == *-* ]]; then
+      lo=${spec%%-*}; hi=${spec#*-}
+      for (( nr = lo; nr <= hi; nr++ )); do
+        (( nr >= 1 && nr <= $#art )) && scarfrows+=($nr)
+      done
+    else
+      (( spec >= 1 && spec <= $#art )) && scarfrows+=($spec)
+    fi
+  done
+
   # Colour for art row $1, from SPLASH_ART_COLORS.
   _splash_artcolor() {
     local spec range lo hi
@@ -110,7 +127,79 @@
     done
   }
 
+  # _splash_prop <frame> <row> <col> -- two-blade prop spinning in a 3x3 box.
+  # The box is blanked first, then the frame is drawn; "." stays blank.
+  _splash_prop() {
+    local n=$(( $1 % 4 )) r=$2 c=$3 line ch i k
+    local -a fr
+    case $n in
+      0) fr=( '.|.' '.|.' '.|.' ) ;;   # blades up / down
+      1) fr=( '../' './.' '/..' ) ;;   # blades upper-right / lower-left
+      2) fr=( '...' '---' '...' ) ;;   # blades left / right
+      3) fr=( '\..' '.\..' '..\' ) ;;  # blades upper-left / lower-right
+    esac
+    for (( i = 0; i < 3; i++ )); do
+      printf '\e[%d;%dH   ' $(( r + i )) $c
+    done
+    for (( i = 0; i < 3; i++ )); do
+      line=$fr[i+1]
+      for (( k = 1; k <= 3; k++ )); do
+        ch=$line[k]
+        [[ $ch == '.' ]] || printf '\e[%d;%dH%s%s%s' \
+          $(( r + i )) $(( c + k - 1 )) "$W" "$ch" "$N"
+      done
+    done
+  }
+
+  # _splash_scarf <frame> -- ripple the scarf: the tail's leading edge licks
+  # out and back while its other end stays anchored.
+  _splash_scarf() {
+    local n=$(( $1 % 4 )) row line rest first after padstr d k rep i=0
+    local -a wave=( 0 -1 0 1 )
+    for row in $scarfrows; do
+      line=$art[row]
+      [[ -n $line ]] || { (( i++ )); continue; }
+      local lead=${line%%[^ ]*}      # leading spaces
+      local pad=$#lead
+      rest=${line#$lead}
+      first=${rest%% *}              # the scarf tail
+      after=${rest#$first}
+      d=${wave[n+1]}
+      (( i % 2 )) && d=$(( -d ))     # rows ripple in opposite directions
+      if (( d > 0 )); then
+        first=${first[d+1,-1]}       # tip retracts, the rest stays put
+        (( pad += d ))
+      elif (( d < 0 )); then
+        rep=''
+        for (( k = 0; k < -d; k++ )); do rep+=$first[1]; done
+        first=$rep$first             # tip billows out to the left
+        (( pad += d ))
+      fi
+      (( pad < 0 )) && pad=0
+      printf -v padstr '%*s' $pad ''
+      printf '\e[%d;1H%s%s%s%s%s' $row "$(_splash_artcolor $row)" \
+        "$padstr" "$first" "$after" "$N"
+      (( i++ ))
+    done
+  }
+
+  # _splash_planes <frame> -- escorts bob, the burning plane's prop turns.
+  # The prop goes down first so the plane's nose is painted over its hub.
+  _splash_planes() {
+    local n=$1
+    _splash_prop $n 16 $(( x + 40 ))
+    if (( (n / 2) % 2 )); then
+      _splash_paint 2 $(( x + 62 )) "" "${planeB[@]}"
+      _splash_paint 7 $(( x + 46 )) "" "${planeA[@]}"
+    else
+      _splash_paint 2 $(( x + 62 )) "" "${planeA[@]}"
+      _splash_paint 7 $(( x + 46 )) "" "${planeB[@]}"
+    fi
+    _splash_paint 14 $(( x + 2 )) "" "${burning[@]}"
+  }
+
   printf '\e[?25l'
+  trap 'printf "\e[?25h"; trap - INT; return 130' INT
   clear
 
   # Art (drawn as-is, so codes inside the file are kept)
@@ -127,25 +216,23 @@
   printf '\e[11;%dH%s( )%s' $(( x + 30 )) "$O" "$N"
   printf '\e[20;%dH%s*%s'   $(( x + 66 )) "$O" "$N"
   printf '\e[%d;4H%sSQUADRON READY%s  %s%s@%s  ·  %s%s' $srow \
-    "$R" "$N" "$G" "$USERNAME" "${HOST%%.*}" "$(date '+%a %d %b %Y, %H:%M')" "$N"
+    "$R" "$N" "$G" "${USER:-$USERNAME}" "${HOST%%.*}" "$(date '+%a %d %b %Y, %H:%M')" "$N"
 
   # Planes
-  local f frames=18 key
-  [[ ${SPLASH_ANIMATE:-1} == 0 ]] && frames=1
-  for (( f = 0; f < frames; f++ )); do
-    if (( (f / 2) % 2 )); then
-      _splash_paint 2 $(( x + 62 )) "" "${planeB[@]}"
-      _splash_paint 7 $(( x + 46 )) "" "${planeA[@]}"
-    else
-      _splash_paint 2 $(( x + 62 )) "" "${planeA[@]}"
-      _splash_paint 7 $(( x + 46 )) "" "${planeB[@]}"
-    fi
-    _splash_paint 14 $(( x + 2 )) "" "${burning[@]}"
-    (( f < frames - 1 )) || break
-    read -s -k 1 -t 0.08 key && break
-  done
+  local f key
+  if [[ ${SPLASH_ANIMATE:-1} == 0 ]]; then
+    _splash_planes 0
+    _splash_scarf 0
+  else
+    for (( f = 0; ; f++ )); do
+      _splash_planes $f
+      _splash_scarf $f
+      read -s -k 1 -t 0.08 key && break
+    done
+  fi
 
+  trap - INT
   printf '\e[?25h\e[%d;1H' $(( srow + 2 ))
-  unfunction _splash_paint _splash_artcolor
+  unfunction _splash_paint _splash_artcolor _splash_prop _splash_planes _splash_scarf
 }
 
