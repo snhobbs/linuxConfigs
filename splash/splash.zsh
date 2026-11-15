@@ -51,7 +51,7 @@
   local -a burning=(
     '                                  ___'
     '                          SSSSFFF||| |'
-    '=== === = == = = = = =  = SSSSSFF|||+|'
+    '=== === = == = = = = =  = SS_SSFF|||+|'
     '                      SSSSS\_`----;| |/'
     '                      SSSSS/_,----:| |'
     '                          SSSSSFF|||+|'
@@ -61,6 +61,16 @@
     '    .--.'
     ' .-(    ).'
     '(___.__)__)'
+  )
+  local -a moon=(
+    '  .-.  '
+    ' (   ) '
+    "  '-'  "
+  )
+  # A distant ridge along the bottom: the planes are high over enemy lines.
+  local -a ridge=(
+    '    .--.              .-.           .--.     '
+    "_.-'    '-.________.-'   '-.______.-'    '-._"
   )
 
   # ---- Optional art on the left -------------------------------------------
@@ -127,28 +137,14 @@
     done
   }
 
-  # _splash_prop <frame> <row> <col> -- two-blade prop spinning in a 3x3 box.
-  # The box is blanked first, then the frame is drawn; "." stays blank.
+  # _splash_prop <frame> <row> <col> -- the nose blade flips between '/' (upper)
+  # and '\' (lower), so the '/' really does go away on the other beat.
   _splash_prop() {
-    local n=$(( $1 % 4 )) r=$2 c=$3 line ch i k
-    local -a fr
-    case $n in
-      0) fr=( '.|.' '.|.' '.|.' ) ;;   # blades up / down
-      1) fr=( '../' './.' '/..' ) ;;   # blades upper-right / lower-left
-      2) fr=( '...' '---' '...' ) ;;   # blades left / right
-      3) fr=( '\..' '.\..' '..\' ) ;;  # blades upper-left / lower-right
-    esac
-    for (( i = 0; i < 3; i++ )); do
-      printf '\e[%d;%dH   ' $(( r + i )) $c
-    done
-    for (( i = 0; i < 3; i++ )); do
-      line=$fr[i+1]
-      for (( k = 1; k <= 3; k++ )); do
-        ch=$line[k]
-        [[ $ch == '.' ]] || printf '\e[%d;%dH%s%s%s' \
-          $(( r + i )) $(( c + k - 1 )) "$W" "$ch" "$N"
-      done
-    done
+    if (( ($1 / 2) % 2 )); then
+      printf '\e[%d;%dH \e[%d;%dH\\' $2 $3 $(( $2 + 1 )) $3
+    else
+      printf '\e[%d;%dH/\e[%d;%dH ' $2 $3 $(( $2 + 1 )) $3
+    fi
   }
 
   # _splash_scarf <frame> -- ripple the scarf: the tail's leading edge licks
@@ -183,11 +179,34 @@
     done
   }
 
-  # _splash_planes <frame> -- escorts bob, the burning plane's prop turns.
-  # The prop goes down first so the plane's nose is painted over its hub.
+  # _splash_flak <frame> -- anti-aircraft fire: each burst blooms from a
+  # spark into a ring of fragments, then fades. The sky is restored behind it
+  # first so the fragments don't smear.
+  _splash_flak() {
+    local n=$1 i r c rr dx dy rad col ch
+    local -a fcol=( $'\e[38;5;220m' $'\e[38;5;214m' $'\e[38;5;208m' $'\e[38;5;240m' )
+    for (( i = 1; i <= $#flakrow; i++ )); do
+      r=${flakrow[i]} c=${flakcol[i]}
+      for (( rr = r - 3; rr <= r + 3; rr++ )); do
+        printf '\e[%d;%dH%*s' $rr $(( c - 3 )) 7 ''
+      done
+      rad=$(( ((n + i * 4) % 10 - 2) / 2 ))
+      (( rad < 0 || rad > 2 )) && continue
+      col=${fcol[rad+1]}
+      ch=.
+      (( rad == 0 )) && ch='*'
+      for (( dy = -rad; dy <= rad; dy++ )); do
+        for (( dx = -rad; dx <= rad; dx++ )); do
+          (( dy == -rad || dy == rad || dx == -rad || dx == rad )) || continue
+          printf '\e[%d;%dH%s%s%s' $(( r + dy )) $(( c + dx )) "$col" "$ch" "$N"
+        done
+      done
+    done
+  }
+
+  # _splash_planes <frame> -- the escorts bob, the burning plane's prop turns.
   _splash_planes() {
     local n=$1
-    _splash_prop $n 16 $(( x + 40 ))
     if (( (n / 2) % 2 )); then
       _splash_paint 2 $(( x + 62 )) "" "${planeB[@]}"
       _splash_paint 7 $(( x + 46 )) "" "${planeA[@]}"
@@ -196,10 +215,12 @@
       _splash_paint 7 $(( x + 46 )) "" "${planeB[@]}"
     fi
     _splash_paint 14 $(( x + 2 )) "" "${burning[@]}"
+    _splash_prop $n 17 $(( x + 40 ))   # burning plane: nose blade
   }
 
   printf '\e[?25l'
-  trap 'printf "\e[?25h"; trap - INT; return 130' INT
+  _splash_stop=0
+  trap '_splash_stop=1' INT        # unwind at the next loop check
   clear
 
   # Art (drawn as-is, so codes inside the file are kept)
@@ -210,11 +231,32 @@
 
   # Scenery
   local srow=$(( $#art + 2 > 22 ? $#art + 2 : 22 ))
+  local -a flakrow=( 4 11 )
+  local -a flakcol=( $(( x + 50 )) $(( x + 66 )) )
+  _splash_paint  2 $(( x + 12 )) $'\e[38;5;253m' "${moon[@]}"
   _splash_paint  3 $(( x + 22 )) "$W" "${cloud[@]}"
   _splash_paint 15 $(( x + 60 )) "$W" "${cloud[@]}"
-  printf '\e[2;%dH%s*%s'    $(( x + 46 )) "$O" "$N"
-  printf '\e[11;%dH%s( )%s' $(( x + 30 )) "$O" "$N"
-  printf '\e[20;%dH%s*%s'   $(( x + 66 )) "$O" "$N"
+  _splash_paint 22 $(( x + 2 )) $'\e[38;5;239m' "${ridge[@]}"
+
+  # A scatter of stars in the upper sky, dim on purpose. Positions are random
+  # but stay out of the moon and the flak bursts, which repaint their own patch.
+  local -a dot=( '.' '·' '+' '*' )
+  local -a dim=( $'\e[38;5;59m' $'\e[38;5;102m' $'\e[38;5;145m' $'\e[38;5;188m' )
+  local k j sr sc ok seed=$(( RANDOM * 32768 + RANDOM ))
+  for (( k = 0; k < 24; k++ )); do
+    seed=$(( (seed * 1103515245 + 12345) % 2147483648 ))
+    sr=$(( seed % 12 + 1 ))
+    seed=$(( (seed * 1103515245 + 12345) % 2147483648 ))
+    sc=$(( seed % ( COLUMNS - x - 10 ) + x + 5 ))
+    ok=1
+    (( sr >= 1 && sr <= 5 && sc >= x + 11 && sc <= x + 19 )) && ok=0
+    for (( j = 1; j <= $#flakrow; j++ )); do
+      (( sr >= flakrow[j] - 3 && sr <= flakrow[j] + 3 &&
+         sc >= flakcol[j] - 3 && sc <= flakcol[j] + 3 )) && ok=0
+    done
+    (( ok )) || continue
+    printf '\e[%d;%dH%s%s%s' $sr $sc "${dim[RANDOM % 4 + 1]}" "${dot[RANDOM % 4 + 1]}" "$N"
+  done
   printf '\e[%d;4H%sSQUADRON READY%s  %s%s@%s  ·  %s%s' $srow \
     "$R" "$N" "$G" "${USER:-$USERNAME}" "${HOST%%.*}" "$(date '+%a %d %b %Y, %H:%M')" "$N"
 
@@ -225,6 +267,8 @@
     _splash_scarf 0
   else
     for (( f = 0; ; f++ )); do
+      (( _splash_stop )) && break
+      _splash_flak $f
       _splash_planes $f
       _splash_scarf $f
       read -s -k 1 -t 0.08 key && break
@@ -232,7 +276,9 @@
   fi
 
   trap - INT
+  unset _splash_stop
   printf '\e[?25h\e[%d;1H' $(( srow + 2 ))
-  unfunction _splash_paint _splash_artcolor _splash_prop _splash_planes _splash_scarf
+  unfunction _splash_paint _splash_artcolor _splash_prop _splash_planes \
+    _splash_scarf _splash_flak
 }
 
