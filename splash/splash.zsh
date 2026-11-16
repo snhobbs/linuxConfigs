@@ -69,8 +69,8 @@
   )
   # A distant ridge along the bottom: the planes are high over enemy lines.
   local -a ridge=(
-    '    .--.              .-.           .--.     '
-    "_.-'    '-.________.-'   '-.______.-'    '-._"
+    '    .--.            .-.               .--.              .-.             .--.            .-.'
+    "_.-'    '-.______.-'   '-._________.-'    '-.________.-'   '-._______.-'    '-.______.-'   '-.__"
   )
 
   # ---- Optional art on the left -------------------------------------------
@@ -179,6 +179,22 @@
     done
   }
 
+  # _splash_cloud <frame> -- the two clouds drift upwind, against the planes.
+  # Each keeps to its own lane so it never crosses an aircraft.
+  _splash_cloud() {
+    local n=$1 i cx rr
+    for (( i = 1; i <= $#cloudrow; i++ )); do
+      cx=$(( cloudhi[i] - (n / 8) % (cloudhi[i] - cloudlo[i] + 1) ))
+      if (( ${cloudprev[i]:-0} )); then
+        for (( rr = cloudrow[i]; rr < cloudrow[i] + $#cloud; rr++ )); do
+          printf '\e[%d;%dH%*s' $rr ${cloudprev[i]} 12 ''
+        done
+      fi
+      cloudprev[i]=$cx
+      _splash_paint $cloudrow[i] $cx "$W" "${cloud[@]}"
+    done
+  }
+
   # _splash_flak <frame> -- anti-aircraft fire: each burst blooms from a
   # spark into a ring of fragments, then fades. The sky is restored behind it
   # first so the fragments don't smear.
@@ -230,13 +246,23 @@
   done
 
   # Scenery
-  local srow=$(( $#art + 2 > 22 ? $#art + 2 : 22 ))
+  local srow=$(( $#art + 2 > 24 ? $#art + 2 : 24 ))
   local -a flakrow=( 4 11 )
   local -a flakcol=( $(( x + 50 )) $(( x + 66 )) )
-  _splash_paint  2 $(( x + 12 )) $'\e[38;5;253m' "${moon[@]}"
-  _splash_paint  3 $(( x + 22 )) "$W" "${cloud[@]}"
-  _splash_paint 15 $(( x + 60 )) "$W" "${cloud[@]}"
-  _splash_paint 22 $(( x + 2 )) $'\e[38;5;239m' "${ridge[@]}"
+  # Cloud lanes, between the aircraft.
+  local -a cloudrow=( 3 15 )
+  local -a cloudlo=( $(( x + 16 )) $(( x + 44 )) )
+  local -a cloudhi=( $(( x + 30 )) $(( COLUMNS - 13 )) )
+  local -a cloudprev
+  _splash_paint  1 $(( x + 6 )) $'\e[38;5;253m' "${moon[@]}"
+  _splash_cloud 0
+
+  # The ridge is trimmed to whatever width is left of the right margin.
+  local rw=$(( COLUMNS - x - 3 ))
+  local -a ridgefit
+  local rline
+  for rline in "${ridge[@]}"; do ridgefit+=("${rline[1,rw]}"); done
+  _splash_paint 22 $(( x + 2 )) $'\e[38;5;239m' "${ridgefit[@]}"
 
   # A scatter of stars in the upper sky, dim on purpose. Positions are random
   # but stay out of the moon and the flak bursts, which repaint their own patch.
@@ -249,7 +275,9 @@
     seed=$(( (seed * 1103515245 + 12345) % 2147483648 ))
     sc=$(( seed % ( COLUMNS - x - 10 ) + x + 5 ))
     ok=1
-    (( sr >= 1 && sr <= 5 && sc >= x + 11 && sc <= x + 19 )) && ok=0
+    (( sr >= 1 && sr <= 4 && sc >= x + 5 && sc <= x + 14 )) && ok=0
+    (( sr >= cloudrow[1] && sr < cloudrow[1] + $#cloud &&
+       sc >= cloudlo[1] && sc <= cloudhi[1] + 11 )) && ok=0
     for (( j = 1; j <= $#flakrow; j++ )); do
       (( sr >= flakrow[j] - 3 && sr <= flakrow[j] + 3 &&
          sc >= flakcol[j] - 3 && sc <= flakcol[j] + 3 )) && ok=0
@@ -270,6 +298,7 @@
       (( _splash_stop )) && break
       _splash_flak $f
       _splash_planes $f
+      _splash_cloud $f
       _splash_scarf $f
       read -s -k 1 -t 0.08 key && break
     done
@@ -279,6 +308,6 @@
   unset _splash_stop
   printf '\e[?25h\e[%d;1H' $(( srow + 2 ))
   unfunction _splash_paint _splash_artcolor _splash_prop _splash_planes \
-    _splash_scarf _splash_flak
+    _splash_scarf _splash_flak _splash_cloud
 }
 
